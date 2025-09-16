@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Klass Connect - Pronote</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a6cf7;
+            --primary-light: #6d8bff;
+            --primary-dark: #3a56c7;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --text-color: #333;
+            --text-light: #6c757d;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        .dark-mode {
+            --primary-color: #6d8bff;
+            --primary-light: #8ba5ff;
+            --primary-dark: #5a7ae0;
+            --secondary-color: #a0aec0;
+            --success-color: #34d399;
+            --text-color: #e2e8f0;
+            --text-light: #a0aec0;
+            --bg-color: #1a202c;
+            --card-bg: #2d3748;
+            --border-color: #4a5568;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: var(--transition);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .container.expanded {
+            max-width: 1200px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        header p {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .login-section {
+            display: block;
+        }
+
+        .dashboard-section {
+            display: none;
+        }
+
+        .platform-selector {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .platform {
+            text-align: center;
+            flex: 1;
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            margin: 0 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .platform:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+        }
+
+        .platform.active {
+            border-color: var(--primary-color);
+            background-color: rgba(74, 108, 247, 0.1);
+        }
+
+        .platform-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+        }
+
+        .platform-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .login-form {
+            display: none;
+        }
+
+        .login-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.2);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            margin-right: 20px;
+        }
+
+        .user-info h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .user-info p {
+            color: var(--text-light);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .dashboard-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .dashboard-card h3 i {
+            margin-right: 10px;
+        }
+
+        .grades-list, .homework-list, .schedule-list {
+            list-style: none;
+        }
+
+        .grades-list li, .homework-list li, .schedule-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grades-list li:last-child, .homework-list li:last-child, .schedule-list li:last-child {
+            border-bottom: none;
+        }
+
+        .grade-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .homework-date {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .schedule-time {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background-color: var(--secondary-color);
+            width: auto;
+            padding: 10px 20px;
+            margin-top: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .platform-selector {
+                flex-direction: column;
+            }
+            
+            .platform {
+                margin: 10px 0;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .user-avatar {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <div class="container" id="mainContainer">
+        <!-- Section de connexion -->
+        <div class="login-section" id="loginSection">
+            <header>
+                <h1>Klass Connect</h1>
+                <p>Connectez-vous à votre plateforme</p>
+            </header>
+
+            <div class="card">
+                <div class="platform-selector">
+                    <div class="platform active" data-platform="pronote">
+                        <div class="platform-logo">
+                            <img src="https://moncollege95.fr/wp-content/uploads/2024/12/PRONOTE-papillon-1024x1024.png" alt="Pronote logo" width="200" height="100">
+                        </div>
+                        <div class="platform-name">Pronote</div>
+                    </div>
+                    <div class="platform" data-platform="ecoledirecte">
+                        <div class="platform-logo">
+                            <img src="https://saintecroix-de-neuilly.com/wp-content/uploads/2023/05/EcoleDirecte-Notre-Dame-de-Sainte-Croix.png" alt="Ecole Directe logo" width="300" height="200">
+                        </div>
+                        <div class="platform-name">Ecole Directe</div>
+                    </div>
+                </div>
+
+                <form class="login-form active" id="pronote-form">
+                    <div class="form-group">
+                        <label for="pronote-username">Identifiant</label>
+                        <input type="text" id="pronote-username" placeholder="Votre identifiant Pronote" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pronote-password">Mot de passe</label>
+                        <input type="password" id="pronote-password" placeholder="Votre mot de passe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pronote-url">URL de l'établissement</label>
+                        <input type="text" id="pronote-url" placeholder="ex: demo.index-education.net" required>
+                    </div>
+                    <button type="submit" class="btn">Se connecter</button>
+                </form>
+
+                <form class="login-form" id="ecoledirecte-form">
+                    <div class="form-group">
+                        <label for="ecoledirecte-username">Identifiant</label>
+                        <input type="text" id="ecoledirecte-username" placeholder="Votre identifiant Ecole Directe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ecoledirecte-password">Mot de passe</label>
+                        <input type="password" id="ecoledirecte-password" placeholder="Votre mot de passe" required>
+                    </div>
+                    <button type="submit" class="btn">Se connecter</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Section tableau de bord (masquée initialement) -->
+        <div class="dashboard-section" id="dashboardSection">
+            <header>
+                <h1>Mon Espace Pronote</h1>
+                <p>Bienvenue dans votre espace personnel</p>
+            </header>
+
+            <div class="card">
+                <div class="dashboard-header">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <h2 id="user-name">Chargement...</h2>
+                        <p id="user-class">Chargement...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-chart-line"></i> Dernières notes</h3>
+                        <ul class="grades-list" id="grades-list">
+                            <li>Chargement des notes...</li>
+                        </ul>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-tasks"></i> Devoirs à venir</h3>
+                        <ul class="homework-list" id="homework-list">
+                            <li>Chargement des devoirs...</li>
+                        </ul>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-calendar-alt"></i> Emploi du temps</h3>
+                        <ul class="schedule-list" id="schedule-list">
+                            <li>Chargement de l'emploi du temps...</li>
+                        </ul>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-bullhorn"></i> Actualités</h3>
+                        <div id="news-container">
+                            <p>Chargement des actualités...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn logout-btn" id="logoutBtn">Se déconnecter</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2023 Application Éducative - Version de démonstration pour tests uniquement</p>
+        </div>
+    </div>
+
+    <script>
+        // Gestion du thème sombre/clair
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        // Vérifier la préférence utilisateur
+        if (localStorage.getItem('theme') === 'dark') {
+            body.classList.add('dark-mode');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        });
+
+        // Gestion de la sélection de plateforme
+        const platforms = document.querySelectorAll('.platform');
+        const pronoteForm = document.getElementById('pronote-form');
+        const ecoleDirecteForm = document.getElementById('ecoledirecte-form');
+        
+        platforms.forEach(platform => {
+            platform.addEventListener('click', () => {
+                // Retirer la classe active de toutes les plateformes
+                platforms.forEach(p => p.classList.remove('active'));
+                
+                // Ajouter la classe active à la plateforme cliquée
+                platform.classList.add('active');
+                
+                // Afficher le formulaire correspondant
+                const platformType = platform.getAttribute('data-platform');
+                if (platformType === 'pronote') {
+                    pronoteForm.classList.add('active');
+                    ecoleDirecteForm.classList.remove('active');
+                } else {
+                    pronoteForm.classList.remove('active');
+                    ecoleDirecteForm.classList.add('active');
+                }
+            });
+        });
+
+        // Gestion de la soumission du formulaire
+        const loginSection = document.getElementById('loginSection');
+        const dashboardSection = document.getElementById('dashboardSection');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const mainContainer = document.getElementById('mainContainer');
+        
+        pronoteForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Récupérer les valeurs des champs
+            const username = document.getElementById('pronote-username').value;
+            const password = document.getElementById('pronote-password').value;
+            const url = document.getElementById('pronote-url').value;
+            
+            // Simuler une connexion
+            simulateLogin(username, password, url);
+        });
+        
+        ecoleDirecteForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Récupérer les valeurs des champs
+            const username = document.getElementById('ecoledirecte-username').value;
+            const password = document.getElementById('ecoledirecte-password').value;
+            
+            // Simuler une connexion
+            simulateLogin(username, password);
+        });
+        
+        // Fonction de simulation de connexion
+        function simulateLogin(username, password, url = null) {
+            // Afficher un indicateur de chargement
+            const loginBtn = document.querySelector('.login-form.active .btn');
+            const originalText = loginBtn.textContent;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
+            loginBtn.disabled = true;
+            
+            // Simuler un délai de connexion
+            setTimeout(() => {
+                // Agrandir le conteneur principal
+                mainContainer.classList.add('expanded');
+                
+                // Cacher la section de connexion et afficher le tableau de bord
+                loginSection.style.display = 'none';
+                dashboardSection.style.display = 'block';
+                
+                // Mettre à jour les informations utilisateur (simulation)
+                document.getElementById('user-name').textContent = "Marie Dupont";
+                document.getElementById('user-class').textContent = "Terminale Scientifique - Lycée Descartes";
+                
+                // Simuler des données
+                simulateData();
+                
+                // Réactiver le bouton
+                loginBtn.textContent = originalText;
+                loginBtn.disabled = false;
+            }, 1500);
+        }
+        
+        // Fonction pour simuler des données (à remplacer par l'API réelle)
+        function simulateData() {
+            // Simuler des notes
+            const gradesList = document.getElementById('grades-list');
+            gradesList.innerHTML = '';
+            const grades = [
+                { subject: 'Mathématiques', grade: '16/20' },
+                { subject: 'Physique-Chimie', grade: '14/20' },
+                { subject: 'Philosophie', grade: '15/20' },
+                { subject: 'Anglais', grade: '17/20' },
+                { subject: 'Histoire-Géographie', grade: '13/20' }
+            ];
+            
+            grades.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `${item.subject} <span class="grade-value">${item.grade}</span>`;
+                gradesList.appendChild(li);
+            });
+            
+            // Simuler des devoirs
+            const homeworkList = document.getElementById('homework-list');
+            homeworkList.innerHTML = '';
+            const homeworks = [
+                { task: 'Rendu TP Physique', date: '15/06' },
+                { task: 'Dissertation Philosophie', date: '17/06' },
+                { task: 'Exercices Mathématiques', date: '18/06' },
+                { task: 'Présentation Anglais', date: '20/06' }
+            ];
+            
+            homeworks.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `${item.task} <span class="homework-date">${item.date}</span>`;
+                homeworkList.appendChild(li);
+            });
+            
+            // Simuler un emploi du temps
+            const scheduleList = document.getElementById('schedule-list');
+            scheduleList.innerHTML = '';
+            const schedule = [
+                { day: 'Lundi 13/06', time: '8h-10h: Mathématiques' },
+                { day: 'Mardi 14/06', time: '10h-12h: Physique' },
+                { day: 'Mercredi 15/06', time: '14h-16h: Philosophie' },
+                { day: 'Jeudi 16/06', time: '8h-10h: Anglais' }
+            ];
+            
+            schedule.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `${item.day} <span class="schedule-time">${item.time}</span>`;
+                scheduleList.appendChild(li);
+            });
+            
+            // Simuler des actualités
+            const newsContainer = document.getElementById('news-container');
+            newsContainer.innerHTML = `
+                <p>Réunion parents-profs le 20 juin à 18h</p>
+                <p>Voyage scolaire à Londres du 25 au 30 juin</p>
+                <p>Inscriptions pour le club théâtre jusqu'au 18 juin</p>
+            `;
+        }
+        
+        // Gestion de la déconnexion
+        logoutBtn.addEventListener('click', () => {
+            // Réduire le conteneur principal
+            mainContainer.classList.remove('expanded');
+            
+            // Cacher le tableau de bord et afficher la section de connexion
+            dashboardSection.style.display = 'none';
+            loginSection.style.display = 'block';
+            
+            // Réinitialiser les formulaires
+            document.getElementById('pronote-form').reset();
+            document.getElementById('ecoledirecte-form').reset();
+        });
+
+        // ===== CONFIGURATION FIREBASE =====
+// REMPLACEZ par VOS valeurs (disponibles dans Firebase Console > Paramètres)
+const firebaseConfig = {
+  "apiKey": "AIzaSyA7xexemple1234567890",
+  "authDomain": "klassconnect-fr.firebaseapp.com",
+  "projectId": "klassconnect-fr",
+  "storageBucket": "klassconnect-fr.firebasestorage.app",
+  "messagingSenderId": "1049401698546",
+  "appId": "1:1049401698546:web:abcdef123456"
+};
+
+// Initialiser Firebase (juste pour l'analytique/auth si besoin)
+const app = firebase.initializeApp(firebaseConfig);
+
+// ===== FONCTIONS DE CONNEXION AVEC VERCEL =====
+async function connectToPronote(url, username, password) {
+  try {
+    // REMPLACEZ par l'URL de VOTRE API Vercel
+    const response = await fetch('https://klassconnect.vercel.app/api/pronote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, username, password })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+async function connectToED(username, password) {
+  try {
+    // REMPLACEZ par l'URL de VOTRE API Vercel  
+    const response = await fetch('https://klassconnect.vercel.app/api/ecoledirecte', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+// ===== GESTIONNAIRE DE CONNEXION =====
+async function handleLogin() {
+  const url = document.getElementById('pronote-url').value;
+  const username = document.getElementById('pronote-username').value;
+  const password = document.getElementById('pronote-password').value;
+  
+  const result = await connectToPronote(url, username, password);
+  
+  if (result.success) {
+    // Afficher les données
+    console.log('Données reçues:', result);
+    showDashboard(result.user, result.grades, result.timetable, result.homework);
+  } else {
+    alert('Erreur: ' + result.error);
+  }
+}
+
+// ===== FONCTION POUR AFFICHER LE TABLEAU DE BORD =====
+function showDashboard(user, grades, timetable, homework) {
+  // Votre code existant pour afficher les données...
+  document.getElementById('user-name').textContent = user.name;
+  document.getElementById('user-class').textContent = user.class;
+  // ... etc ...
+}
+
+// ===== GESTIONNAIRE D'ÉVÉNEMENTS =====
+document.getElementById('pronote-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  handleLogin();
+});
+</script>
+</body>
+</html>
